@@ -16,6 +16,17 @@ app.use(bodyParser());
 app.use(express.static(staticDir));
 
 
+/************************
+ *
+ *     OTHER ROUTES
+ *
+ ************************/
+
+// handle: /map
+app.get('/map', function(req, res){
+	res.sendfile(staticDir + '/map.html');
+});
+
 
 
 /************************
