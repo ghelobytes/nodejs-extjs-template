@@ -9,22 +9,24 @@ Ext.define('ExtThemeNeptune.Component', {
         }
     },
 
-    initStyles: function() {
-        var me = this,
-            hasOwnBorder = me.hasOwnProperty('border'),
-            border = me.border;
+    privates: {
+        initStyles: function () {
+            var me = this,
+                hasOwnBorder = me.hasOwnProperty('border'),
+                border = me.border;
 
-        if (me.dock) {
-            // prevent the superclass method from setting the border style.  We want to
-            // allow dock layout to decide which borders to suppress.
-            me.border = null;
-        }
-        me.callParent(arguments);
+            if (me.dock) {
+                // prevent the superclass method from setting the border style.  We want to
+                // allow dock layout to decide which borders to suppress.
+                me.border = null;
+            }
+            me.callParent(arguments);
 
-        if (hasOwnBorder) {
-            me.border = border;
-        } else {
-            delete me.border;
+            if (hasOwnBorder) {
+                me.border = border;
+            } else {
+                delete me.border;
+            }
         }
     }
 });
@@ -341,7 +343,7 @@ Ext.define('ExtThemeNeptune.resizer.Splitter', {
     size: 8
 });
 
-Ext.define('ExtThemeNeptuneTouch.resizer.Splitter', {
+Ext.define('Ext.touch.sizing.resizer.Splitter', {
     override: 'Ext.resizer.Splitter',
     size: 16
 });
@@ -351,7 +353,7 @@ Ext.define('ExtThemeNeptune.container.ButtonGroup', {
     usePlainButtons: false
 });
 
-Ext.define('ExtThemeNeptuneTouch.form.trigger.Spinner', {
+Ext.define('Ext.touch.sizing.form.trigger.Spinner', {
     override: 'Ext.form.trigger.Spinner',
     vertical: false
 });
@@ -394,11 +396,6 @@ Ext.define('ExtThemeNeptune.grid.column.RowNumberer', {
     width: 25
 });
 
-Ext.define('ExtThemeNeptuneTouch.grid.plugin.RowExpander', {
-    override: 'Ext.grid.plugin.RowExpander',
-    headerWidth: 30
-});
-
 Ext.define('ExtThemeNeptune.menu.Separator', {
     override: 'Ext.menu.Separator',
     border: true
@@ -410,9 +407,14 @@ Ext.define('ExtThemeNeptune.menu.Menu', {
     showSeparator: false
 });
 
-Ext.define('ExtThemeNeptuneTouch.selection.CheckboxModel', {
+Ext.define('Ext.touch.sizing.grid.plugin.RowExpander', {
+    override: 'Ext.grid.plugin.RowExpander',
+    headerWidth: 32
+});
+
+Ext.define('Ext.touch.sizing.selection.CheckboxModel', {
     override: 'Ext.selection.CheckboxModel',
-    headerWidth: 30
+    headerWidth: 32
 });
 
 

@@ -9,22 +9,24 @@ Ext.define('ExtThemeNeptune.Component', {
         }
     },
 
-    initStyles: function() {
-        var me = this,
-            hasOwnBorder = me.hasOwnProperty('border'),
-            border = me.border;
+    privates: {
+        initStyles: function () {
+            var me = this,
+                hasOwnBorder = me.hasOwnProperty('border'),
+                border = me.border;
 
-        if (me.dock) {
-            // prevent the superclass method from setting the border style.  We want to
-            // allow dock layout to decide which borders to suppress.
-            me.border = null;
-        }
-        me.callParent(arguments);
+            if (me.dock) {
+                // prevent the superclass method from setting the border style.  We want to
+                // allow dock layout to decide which borders to suppress.
+                me.border = null;
+            }
+            me.callParent(arguments);
 
-        if (hasOwnBorder) {
-            me.border = border;
-        } else {
-            delete me.border;
+            if (hasOwnBorder) {
+                me.border = border;
+            } else {
+                delete me.border;
+            }
         }
     }
 });

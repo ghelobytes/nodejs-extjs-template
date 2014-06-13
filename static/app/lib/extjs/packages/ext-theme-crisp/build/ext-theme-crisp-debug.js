@@ -9,22 +9,24 @@ Ext.define('ExtThemeNeptune.Component', {
         }
     },
 
-    initStyles: function() {
-        var me = this,
-            hasOwnBorder = me.hasOwnProperty('border'),
-            border = me.border;
+    privates: {
+        initStyles: function () {
+            var me = this,
+                hasOwnBorder = me.hasOwnProperty('border'),
+                border = me.border;
 
-        if (me.dock) {
-            // prevent the superclass method from setting the border style.  We want to
-            // allow dock layout to decide which borders to suppress.
-            me.border = null;
-        }
-        me.callParent(arguments);
+            if (me.dock) {
+                // prevent the superclass method from setting the border style.  We want to
+                // allow dock layout to decide which borders to suppress.
+                me.border = null;
+            }
+            me.callParent(arguments);
 
-        if (hasOwnBorder) {
-            me.border = border;
-        } else {
-            delete me.border;
+            if (hasOwnBorder) {
+                me.border = border;
+            } else {
+                delete me.border;
+            }
         }
     }
 });
@@ -336,7 +338,7 @@ Ext.define('ExtThemeNeptune.panel.Table', {
     }
 });
 
-Ext.define('ExtThemeCrisp.view.Table', {
+Ext.define('Ext.theme.crisp.view.Table', {
     override: 'Ext.view.Table',
     stripeRows: false
 });
@@ -346,34 +348,9 @@ Ext.define('ExtThemeNeptune.resizer.Splitter', {
     size: 8
 });
 
-Ext.define('ExtThemeNeptuneTouch.resizer.Splitter', {
-    override: 'Ext.resizer.Splitter',
-    size: 16
-});
-
-Ext.define('ExtThemeCrisp.tab.Tab', {
-    override: 'Ext.tab.Tab',
-    initComponent: function() {
-        // IE8/9 display black pixels on the rounded edges of the tabs when rotated.
-        // IN classic/neptune this is not terribly obvious, but it really stands out
-        // in the crisp theme.  The easiest solution is just to disable rounded corners
-        // in IE9m
-        if (Ext.isIE9m) {
-            this.frame = false;
-        }
-
-        this.callParent();
-    }
-});
-
 Ext.define('ExtThemeNeptune.container.ButtonGroup', {
     override: 'Ext.container.ButtonGroup',
     usePlainButtons: false
-});
-
-Ext.define('ExtThemeNeptuneTouch.form.trigger.Spinner', {
-    override: 'Ext.form.trigger.Spinner',
-    vertical: false
 });
 
 Ext.define('ExtThemeNeptune.toolbar.Paging', {
@@ -414,16 +391,6 @@ Ext.define('ExtThemeNeptune.grid.column.RowNumberer', {
     width: 25
 });
 
-Ext.define('ExtThemeNeptuneTouch.grid.plugin.RowExpander', {
-    override: 'Ext.grid.plugin.RowExpander',
-    headerWidth: 30
-});
-
-Ext.define('ExtThemeCrisp.grid.plugin.RowExpander', {
-    override: 'Ext.grid.plugin.RowExpander',
-    headerWidth: 32
-});
-
 Ext.define('ExtThemeNeptune.menu.Separator', {
     override: 'Ext.menu.Separator',
     border: true
@@ -433,11 +400,6 @@ Ext.define('ExtThemeNeptune.menu.Separator', {
 Ext.define('ExtThemeNeptune.menu.Menu', {
     override: 'Ext.menu.Menu',
     showSeparator: false
-});
-
-Ext.define('ExtThemeNeptuneTouch.selection.CheckboxModel', {
-    override: 'Ext.selection.CheckboxModel',
-    headerWidth: 30
 });
 
 

@@ -2667,27 +2667,29 @@ Ext.define('Ext.chart.MaskLayer', {
     //'mouseenter',
     //'mouseleave'
 
-    initDraggable: function() {
-        this.callParent(arguments);
-        this.dd.onStart = function (e) {
-            var me = this,
-                comp = me.comp;
-    
-            // Cache the start [X, Y] array
-            this.startPosition = comp.getPosition(true);
-    
-            // If client Component has a ghost method to show a lightweight version of itself
-            // then use that as a drag proxy unless configured to liveDrag.
-            if (comp.ghost && !comp.liveDrag) {
-                 me.proxy = comp.ghost();
-                 me.dragTarget = me.proxy.header.el;
-            }
-    
-            // Set the constrainTo Region before we start dragging.
-            if (me.constrain || me.constrainDelegate) {
-                me.constrainTo = me.calculateConstrainRegion();
-            }
-        };
+    privates: {
+        initDraggable: function() {
+            this.callParent(arguments);
+            this.dd.onStart = function (e) {
+                var me = this,
+                    comp = me.comp;
+
+                // Cache the start [X, Y] array
+                this.startPosition = comp.getPosition(true);
+
+                // If client Component has a ghost method to show a lightweight version of itself
+                // then use that as a drag proxy unless configured to liveDrag.
+                if (comp.ghost && !comp.liveDrag) {
+                    me.proxy = comp.ghost();
+                    me.dragTarget = me.proxy.header.el;
+                }
+
+                // Set the constrainTo Region before we start dragging.
+                if (me.constrain || me.constrainDelegate) {
+                    me.constrainTo = me.calculateConstrainRegion();
+                }
+            };
+        }
     }
 });
 
@@ -2725,6 +2727,8 @@ Ext.define('Ext.chart.MaskLayer', {
  * 
  */
 Ext.define('Ext.chart.Mask', {
+    mixinId: 'mask',
+
     requires: [
         'Ext.chart.MaskLayer'
     ],
@@ -2905,6 +2909,7 @@ Ext.define('Ext.chart.Mask', {
  * Used as mixin by Ext.chart.Chart.
  */
 Ext.define('Ext.chart.Navigation', {
+    mixinId: 'navigation',
 
     /**
      * Zooms the chart to the specified selection range.
@@ -4378,13 +4383,13 @@ Ext.define('Ext.chart.Chart', {
 
     alias: 'widget.chart',
     
-    mixins: {
-        themeManager: 'Ext.chart.theme.Theme',
-        mask: 'Ext.chart.Mask',
-        navigation: 'Ext.chart.Navigation',
-        bindable: 'Ext.util.Bindable',
-        observable: 'Ext.util.Observable'
-    },
+    mixins: [
+        'Ext.chart.theme.Theme',
+        'Ext.chart.Mask',
+        'Ext.chart.Navigation',
+        'Ext.util.StoreHolder',
+        'Ext.util.Observable'
+    ],
 
     uses: [
         'Ext.chart.series.Series'
@@ -4776,7 +4781,7 @@ Ext.define('Ext.chart.Chart', {
 
         if (me.surface.engine === 'Vml') {
             me.on('added', me.onAddedVml, me);
-            me.mon(me.hierarchyEventSource, 'added', me.onContainerAddedVml, me);
+            me.mon(Ext.GlobalEvents, 'added', me.onContainerAddedVml, me);
         }
     },
 
@@ -4994,7 +4999,7 @@ Ext.define('Ext.chart.Chart', {
     
     setShowListeners: function(method){
         var me = this;
-        me[method](me.hierarchyEventSource, {
+        me[method](Ext.GlobalEvents, {
             scope: me,
             single: true,
             show: me.forceRefresh,
@@ -5021,7 +5026,7 @@ Ext.define('Ext.chart.Chart', {
 
     bindStore: function(store, initial) {
         var me = this;
-        me.mixins.bindable.bindStore.apply(me, arguments);
+        me.mixins.storeholder.bindStore.apply(me, arguments);
         if (me.store && !initial) {
             me.refresh();
         }
@@ -5034,7 +5039,7 @@ Ext.define('Ext.chart.Chart', {
         return {
             refresh: refresh,
             add: delayRefresh,
-            bulkremove: delayRefresh,
+            remove: delayRefresh,
             update: delayRefresh,
             clear: refresh
         };
@@ -7674,6 +7679,7 @@ Ext.define('Ext.draw.Draw', {
  *     axes: [{
  *         type: 'Numeric',
  *         position: 'left',
+ *         titleAlign: 'end', // or 'start', or 'center' (default)
  *         fields: ['data1', 'data2', 'data3'],
  *         title: 'Number of Hits',
  *         grid: {
@@ -8650,6 +8656,7 @@ Ext.define('Ext.chart.axis.Axis', {
     drawTitle: function (maxWidth, maxHeight) {
         var me = this,
             position = me.position,
+            titleAlign = me.titleAlign,
             surface = me.chart.surface,
             displaySprite = me.displaySprite,
             title = me.title,
@@ -8674,7 +8681,13 @@ Ext.define('Ext.chart.axis.Axis', {
         pad = me.dashSize + me.label.padding;
 
         if (rotate) {
-            y -= ((me.length / 2) - (bbox.height / 2));
+            if (titleAlign === 'end') {
+                y -= me.length - bbox.height;
+            }
+            else if (!titleAlign || titleAlign === 'center') {
+                y -= ((me.length / 2) - (bbox.height / 2));
+            }
+            
             if (position == 'left') {
                 x -= (maxWidth + pad + (bbox.width / 2));
             }
@@ -8684,7 +8697,13 @@ Ext.define('Ext.chart.axis.Axis', {
             me.bbox.width += bbox.width + 10;
         }
         else {
-            x += (me.length / 2) - (bbox.width * 0.5);
+            if (titleAlign === 'end' || (me.reverse && titleAlign === 'start')) {
+                x += me.length - bbox.width;
+            }
+            else if (!titleAlign || titleAlign === 'center') {
+                x += (me.length / 2) - (bbox.width * 0.5);
+            }
+            
             if (position == 'top') {
                 y -= (maxHeight + pad + (bbox.height * 0.3));
             }
@@ -9770,10 +9789,8 @@ Ext.define('Ext.chart.series.Series', {
      *
      *     tips: {
      *       trackMouse: true,
-     *       width: 140,
-     *       height: 28,
      *       renderer: function(storeItem, item) {
-     *         this.setTitle(storeItem.get('name') + ': ' + storeItem.get('data1') + ' views');
+     *         this.setHtml(storeItem.get('name') + ': ' + storeItem.get('data1') + ' views');
      *       }
      *     },
      */
@@ -14417,21 +14434,16 @@ Ext.define('Ext.chart.series.Line', {
     isItemInPoint: function(x, y, item, i) {
         var me = this,
             items = me.items,
+            ln = items.length,
             tolerance = me.selectionTolerance,
-            result = null,
             prevItem,
             nextItem,
             prevPoint,
             nextPoint,
-            ln,
-            x1,
-            y1,
-            x2,
-            y2,
-            xIntersect,
-            yIntersect,
-            dist1, dist2, dist, midx, midy,
-            sqrt = Math.sqrt, abs = Math.abs;
+            x1, x2,
+            y1, y2,
+            dist1, dist2, dist,
+            sqrt = Math.sqrt;
 
         nextItem = items[i];
         prevItem = i && items[i - 1];
@@ -16644,8 +16656,14 @@ Ext.define('Ext.chart.series.Scatter', {
             lnsh = shadowGroups.length,
             sprite, attrs, attr, ln, i, endMarkerStyle, shindex, type, shadows,
             rendererAttributes, shadowAttribute;
+        
+        if (!store || !store.getCount() || me.seriesIsHidden) {
+            me.hide();
+            me.items = [];
+            return;
+        }
 
-        endMarkerStyle = Ext.apply(me.markerStyle, me.markerConfig);
+        endMarkerStyle = Ext.apply({}, me.markerStyle, me.markerConfig);
         type = endMarkerStyle.type || 'circle';
         delete endMarkerStyle.type;
 
@@ -17103,7 +17121,7 @@ Ext.define('Ext.draw.Matrix', {
         return [(matrix[0][2] || 0).toFixed(4), (matrix[1][2] || 0).toFixed(4)];
     },
 
-    // Split matrix into Translate Scale, Shear, and Rotate
+    // Split matrix into Translate, Scale, Shear, and Rotate.
     split: function () {
         function norm(a) {
             return a[0] * a[0] + a[1] * a[1];
@@ -17789,8 +17807,15 @@ Ext.define('Ext.draw.Sprite', {
         return this.surface.getBBox(this);
     },
 
+    /**
+     * Set the text of a Text Sprite.
+     * @param {String} text The text to display.
+     * @return {Ext.draw.Sprite} this
+     */
     setText: function(text) {
-        return this.surface.setText(this, text);
+        this.attr.text = text; 
+        this.surface.applyAttrs(this);
+        return this;
     },
 
     /**
@@ -17925,7 +17950,7 @@ Ext.define('Ext.rtl.draw.Sprite', {
      * prepend it to any text. It's the easiest solution and should cover enough
      * cases to be handled in the charting package. The RLM tells the browser to
      * interpret character groups in a RTL fashion. Text with RTL characters will
-     * display correctly whether in RTL or LTR mode, the LRM affects how other characters
+     * display correctly whether in RTL or LTR mode, the RLM affects how other characters
      * are displayed around it.
      * 
      * Let's take the string (you'll need to paste these in browsers, somewhat of
@@ -17957,7 +17982,7 @@ Ext.define('Ext.rtl.draw.Sprite', {
             // IE9m will display a strange visual artefact when showing
             // text with the RLM and there are no RTL characters in the string.
             // IE6 & 7 will still show the artefact, it seems to be unavoidable.
-            return me.RLM + text;    
+            return me.RLM + text;
         }
         return me.callParent(arguments);
     }    
@@ -18215,11 +18240,11 @@ Ext.define('Ext.draw.engine.ImageExporter', {
      * @param {Ext.draw.Surface} surface The surface to export
      * @param {Object} [config] The following config options are supported:
      *
-     * @param {Number} config.width A width to send to the server to for
-     * configuring the image height
+     * @param {Number} config.width A width to send to the server for
+     * configuring the image width.
      *
      * @param {Number} config.height A height to send to the server for
-     * configuring the image height
+     * configuring the image height.
      *
      * @param {String} config.url The url to post the data to. Defaults to
      * the {@link #defaultUrl} configuration on the class.
@@ -18550,7 +18575,7 @@ Ext.define('Ext.draw.engine.Svg', {
 
     render: function (container) {
         var me = this,
-            el, defs, bgRect, webkitRect;
+            cfg, el, defs, bgRect, webkitRect;
             
         if (!me.el) {
             cfg = {
@@ -19620,8 +19645,7 @@ Ext.define('Ext.draw.engine.Vml', {
                     Math.round((cy + ry) * me.zoom),
                     Math.round(cx * me.zoom));
                 sprite.dirtyPath = false;
-            }
-            else if (sprite.type !== "text" && sprite.type !== 'image') {
+            } else {
                 sprite.attr.path = scrubbedAttrs.path = me.setPaths(sprite, scrubbedAttrs) || scrubbedAttrs.path;
                 dom.path = me.path2vml(scrubbedAttrs.path);
                 sprite.dirtyPath = false;

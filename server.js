@@ -2,6 +2,8 @@
 var port = 8080;
 var express = require('express');
 var app = express();
+
+// prepare routes
 var authRouter = express.Router();
 var apiRouter = express.Router();
 
@@ -16,6 +18,7 @@ app.use(bodyParser());
 app.use(express.static(staticDir));
 
 
+
 /************************
  *
  *     OTHER ROUTES
@@ -26,7 +29,6 @@ app.use(express.static(staticDir));
 app.get('/map', function(req, res){
 	res.sendfile(staticDir + '/map.html');
 });
-
 
 
 /************************
@@ -53,7 +55,11 @@ authRouter.post('/member', function(req, res){
 
 
 
-
+/*********************
+ *
+ *    PROXY ROUTES
+ *
+ ********************/
 
 
 
@@ -78,3 +84,21 @@ apiRouter.get('/layers', function(req, res){
 var server = app.listen(port, function(){
 	console.log('Listening on port %d', port);
 });
+
+
+
+
+
+
+
+////////////////////
+var proxyHost = 'localhost';
+var proxyPort = '8000';
+var cors_proxy = require('cors-anywhere');
+cors_proxy.createServer({
+    //requireHeader: ['origin', 'x-requested-with'],
+    //removeHeaders: ['cookie', 'cookie2']
+}).listen(proxyPort, proxyHost, function() {
+    console.log('Running CORS Anywhere on ' + proxyHost + ':' + proxyPort);
+});
+

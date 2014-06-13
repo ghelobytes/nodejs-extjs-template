@@ -1,68 +1,30 @@
 Ext.Loader.setConfig({
-disableCaching: false,
-enabled: true,
-paths: {
-    GeoExt:'lib/geoext'
-} 
+	disableCaching: false,
+	enabled: true,
+	paths: {
+	    GeoExt:'lib/geoext',
+		PGP: 'js/PGP'
+	} 
 });
 
 
 Ext.application({
     name: 'OL3EXT4',
+	requires: ['PGP.views.StartEndPanel', 'PGP.views.TDPlotter', 'PGP.Helper'],
     launch: function () {
 		
-		
-		/*
-        var map = new OpenLayers.Map({});
-        
-        var wms = new OpenLayers.Layer.WMS(
-            "OpenLayers WMS",
-            "http://vmap0.tiles.osgeo.org/wms/vmap0?",
-            {layers: 'basic'}
-        );
-        s
-        map.addLayers([wms]);
-        
-        mappanel = Ext.create('GeoExt.panel.Map', {
-            title: 'The GeoExt.panel.Map-class',
-            map: map,
-            center: '12.3046875,51.48193359375',
-            zoom: 6,
-            stateful: true,
-            stateId: 'mappanel',
-//            extent: '12.87,52.35,13.96,52.66',
-            dockedItems: [{
-                xtype: 'toolbar',
-                dock: 'top',
-                items: [{
-                    text: 'Current center of the map',
-                    handler: function(){
-                        var c = GeoExt.panel.Map.guess().map.getCenter();
-                        Ext.Msg.alert(this.getText(), c.toString());
-                    }
-                }]
-            }]
-        });
-
-        Ext.create('Ext.container.Viewport', {
-            layout: 'fit',
-            items: [
-                mappanel
-            ]
-        });
-		*/
-		
-			
-		
         var mappanel = Ext.create('Ext.panel.Panel', {
-            title: "Test Map",
-            layout: 'fit',
-			showHeader: false,
+            //title: 'Test Map',
+			width: 100,
+			height: 100,
+			layout: 'fit',
+			region: 'center',
+			map: null,
             listeners: {
                 afterrender: function () {
-					
 					var wh = this.ownerCt.getSize();
 					Ext.applyIf(this, wh);
+
 
 					var pgp_basemap_cache = new OpenLayers.Layer.NAMRIA(
 						'NAMRIA Basemap',
@@ -71,6 +33,7 @@ Ext.application({
 							isBaseLayer: true
 						}
 					);
+
 
 					var municipal_boundary = new OpenLayers.Layer.WMS( 
 						'Admin Boundary',
@@ -92,33 +55,78 @@ Ext.application({
 							controls: [
 					        	new OpenLayers.Control.Navigation(),
 					        	new OpenLayers.Control.LayerSwitcher(),
-					        	new OpenLayers.Control.Zoom()
+					        	new OpenLayers.Control.Zoom(),
+								new OpenLayers.Control.MousePosition({
+									displayProjection: 'EPSG:4326'
+								})
 							],
 							fallThrough: true,
 							projection: 'EPSG:900913'
 						}
 					);
-		
-					this.map.addLayers([municipal_boundary, pgp_basemap_cache]);
+
+					this.map.addLayers([pgp_basemap_cache]);
 					this.map.zoomToMaxExtent();	
-					
 					
                 },
                 // The resize handle is necessary to set the map!
 				resize: function () {
                     var size = [document.getElementById(this.id + "-body").offsetWidth, document.getElementById(this.id + "-body").offsetHeight];
-                    console.log(size);
                     this.map.updateSize(size);
                 }
-            }
-        });
-        Ext.create('Ext.container.Viewport', {
-            layout: 'fit',
-            items: [
-                mappanel
-            ]
+            },
+			getMap: function(){
+				console.log('getMap', this.map);
+				return this.map;
+			}
         });
 		
+		Ext.create('Ext.container.Viewport', {
+		    layout: 'border',
+		    items: [
+				{
+		        	region: 'north',
+		        	html: '<h1 class="x-panel-header">Just-Another-Routing/Plotting-App</h1>',
+		        	border: false,
+		        	margins: '0 0 5 0',
+					buttons: [
+						{
+							text: 'Click me',
+							handler: function(){
+								var tdplotter = this.up('viewport').down('pgp-tdplotter');
+								
+								var lat = '14 35 02.56';
+								var lon = '120 59 00.349';
+								var heading = 'N';
+								var bearing = 'W'
+								var degree = 20;
+								var minute = 47;
+								var distance = 1241.90;
+								
+								console.log(tdplotter.getNextPoint(lat, lon, heading, bearing, degree, minute, distance));
+							}
+						}
+					]
+		    	}, 
+				{
+					xtype: 'pgp-startendpanel',
+		        	region: 'west',
+		        	title: 'Routes',
+		        	width: 250,
+					split: true,
+					mapContainer: mappanel
+				},
+				{
+					xtype: 'pgp-tdplotter',
+		        	region: 'east',
+		        	title: 'Technical Description',
+		        	width: 500,
+					split: true,
+					mapContainer: mappanel
+				},
+				mappanel
+			]
+		});
 		
     }
 });

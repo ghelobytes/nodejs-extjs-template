@@ -271,6 +271,11 @@ Ext.define("Ext.locale.cs.grid.PropertyColumnModel", {
     dateFormat: "j.m.Y"
 });
 
+Ext.define("Ext.locale.cs.form.field.File", {
+    override: "Ext.form.field.File",
+    buttonText: "Procházet..."
+});
+
 Ext.define("Ext.locale.cs.window.MessageBox", {
     override: "Ext.window.MessageBox",
     buttonText: {

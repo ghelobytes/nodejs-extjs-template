@@ -275,6 +275,11 @@ Ext.define("Ext.locale.en_AU.form.field.Time", {
     altFormats: "g:ia|g:iA|g:i a|g:i A|h:i|g:i|H:i|ga|ha|gA|h a|g a|g A|gi|hi|gia|hia|g|H"
 });
 
+Ext.define("Ext.locale.en_AU.form.field.File", {
+    override: "Ext.form.field.File",
+    buttonText: "Browse..."
+});
+
 Ext.define("Ext.locale.en_AU.form.CheckboxGroup", {
     override: "Ext.form.CheckboxGroup",
     blankText: "You must select at least one item in this group"
